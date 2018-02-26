@@ -1,0 +1,67 @@
+#!/bin/bash
+# -----------------------------------------------------------------------
+# Copyright C.Williams 2018 All rights reserved
+# -----------------------------------------------------------------------
+#
+# Synopsis:
+#   Creates a date based notebook using vim as an editor as a collection of datestamp named files
+#
+# Usage:
+#   diary [notebook]
+#
+# Options:
+#   notebook: the name of the notebook (default=diary)
+#            n.b each notbook will be stored in tis own subdirectory 
+#
+# -----------------------------------------------------------------------
+# settings
+NoteBase=~/Private/NoteBook
+
+# defaults
+NoteBook=diary
+
+# process command line
+script=`basename "$0"`
+while [[ $# -gt 0 ]]
+do
+key="$1"
+case $key in
+    -h|--help)
+        echo Synopsis:
+        echo "   Creates a date based notebook using vim as an editor."
+        echo "   Notes are stored a collection of date stamped files."
+        echo ""
+        echo Usage:
+        echo "   ${script} [notebook]"
+        echo ""
+        echo Options:
+        echo "   notebook: the name of the notebook (default=${NoteBook})"
+        echo "             n.b each notebook will be stored in its own subdirectory."
+        exit 0;
+        ;;
+    *)
+        NoteBook=$1
+        shift
+        ;;
+esac
+done
+
+# capitalise first letter of NoteBook name given
+NoteBookName=`echo ${NoteBook} | tr "[A-Z]" "[a-z]" | sed -e "s/_/ /g" -e "s/\b\(.\)/\u\1/g"`
+dir=${NoteBase}/${NoteBook}
+
+mkdir -p ${dir}
+
+filename=${dir}/`date +"%Y_%b_%d"`
+if [ ! -f ${filename} ]; then
+echo Creating ${NoteBookName} entry ${filename}
+echo "--------------------------------------------------------------------------------" > ${filename}
+echo -n "${NoteBookName}: " >> ${filename}
+date +"%a %d %b %Y" >> ${filename}
+echo "--------------------------------------------------------------------------------" >> ${filename}
+else
+echo "" >> ${filename}
+fi
+date +"(%R)" >> ${filename}
+echo -n "     " >> ${filename}
+vim "+normal G$" +startinsert ${filename}
