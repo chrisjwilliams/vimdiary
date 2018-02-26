@@ -6,19 +6,16 @@
 # Synopsis:
 #   Creates a date based notebook using vim as an editor as a collection of datestamp named files
 #
-# Usage:
-#   diary [notebook]
-#
-# Options:
-#   notebook: the name of the notebook (default=diary)
-#            n.b each notbook will be stored in tis own subdirectory 
-#
 # -----------------------------------------------------------------------
-# settings
-NoteBase=~/Private/NoteBook
-
-# defaults
+# default settings
+NoteBase=~/NoteBooks
 NoteBook=diary
+
+# override from config file if it exists
+ConfigFile="${HOME}/.vimdiary"
+if [ -f ${ConfigFile} ]; then
+    source ${ConfigFile}
+fi
 
 # process command line
 script=`basename "$0"`
@@ -32,14 +29,25 @@ case $key in
         echo "   Notes are stored a collection of date stamped files."
         echo ""
         echo Usage:
-        echo "   ${script} [notebook]"
+        echo "   ${script} [OPTIONS] [notebook]"
         echo ""
         echo Options:
-        echo "   notebook: the name of the notebook (default=${NoteBook})"
-        echo "             n.b each notebook will be stored in its own subdirectory."
+        echo "   notebook    : the name of the notebook (default=${NoteBook})"
+        echo "                 n.b each notebook will be stored in its"
+        echo "                     own subdirectory."
+        echo "   -e|--env    : display config info to screen and exit"
+        echo ""
+        echo Configuration File:
+        echo "    If the file ${ConfigFile} exists it will be read for the variables"
+        echo "        NoteBook=<default_notebook>"
+        echo "        NoteBase=<Notebook file Storage Location>"
         exit 0;
         ;;
-    *)
+     -e|--env)
+        echo "Notebook base: ${NoteBase}"
+        exit 0;
+        ;;
+     *)
         NoteBook=$1
         shift
         ;;
@@ -47,8 +55,9 @@ esac
 done
 
 # capitalise first letter of NoteBook name given
-NoteBookName=`echo ${NoteBook} | tr "[A-Z]" "[a-z]" | sed -e "s/_/ /g" -e "s/\b\(.\)/\u\1/g"`
-dir=${NoteBase}/${NoteBook}
+notebook=`echo ${NoteBook} | tr "[A-Z]" "[a-z]"`
+NoteBookName=`echo ${notebook} | sed -e "s/_/ /g" -e "s/\b\(.\)/\u\1/g"`
+dir=${NoteBase}/${notebook}
 
 mkdir -p ${dir}
 
