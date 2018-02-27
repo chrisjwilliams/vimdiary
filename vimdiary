@@ -41,7 +41,7 @@ case $key in
         echo Configuration File:
         echo "    If the file ${ConfigFile} exists it will be read for the variables"
         echo "        NoteBook=<default_notebook>"
-        echo "        NoteBase=<Notebook file Storage Location>"
+        echo "        NoteBase=<Path to Notebook File Storage"
         exit 0;
         ;;
      -e|--env)
@@ -51,6 +51,10 @@ case $key in
      -l|--list)
         find ${NoteBase} -mindepth 1 -maxdepth 1 -type d -printf '%f\n'
         exit 0;
+        ;;
+     -*)
+        echo "Unknown option: $1"
+        exit 1;
         ;;
      *)
         NoteBook=$1
