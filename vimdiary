@@ -36,7 +36,7 @@ case $key in
         echo "                 n.b each notebook will be stored in its"
         echo "                     own subdirectory."
         echo "   -e|--env    : display config info to screen and exit"
-        echo "   -l|--list   : list the notebooks that exist
+        echo "   -l|--list   : list the notebooks that exist"
         echo ""
         echo Configuration File:
         echo "    If the file ${ConfigFile} exists it will be read for the variables"
