@@ -32,11 +32,12 @@ case $key in
         echo "   ${script} [OPTIONS] [notebook]"
         echo ""
         echo Options:
-        echo "   notebook    : the name of the notebook (default=${NoteBook})"
-        echo "                 n.b each notebook will be stored in its"
+        echo "   notebook       : the name of the notebook (default=${NoteBook})"
+        echo "                    n.b each notebook will be stored in its"
         echo "                     own subdirectory."
-        echo "   -e|--env    : display config info to screen and exit"
-        echo "   -l|--list   : list the notebooks that exist"
+        echo "   -e|--env       : display config info to screen and exit"
+        echo "   -l|--list      : list the notebooks that exist"
+        echo "   -y|--yesterday : open yesterdays entry"
         echo ""
         echo Configuration File:
         echo "    If the file ${ConfigFile} exists it will be read for the variables"
@@ -51,6 +52,10 @@ case $key in
      -l|--list)
         find ${NoteBase} -mindepth 1 -maxdepth 1 -type d -print | xargs basename -a
         exit 0;
+        ;;
+     -y|--yesterday)
+        date_str="-d 'yesterday 13:00'"
+        shift;
         ;;
      -*)
         echo "Unknown option: $1"
@@ -69,13 +74,13 @@ NoteBookName=`echo ${notebook} | sed -e "s/_/ /g" -e "s/\b\(.\)/\u\1/g"`
 dir=${NoteBase}/${notebook}
 
 mkdir -p ${dir}
-
-filename=${dir}/`date +"%Y_%b_%d"`
+date_fname=`eval date ${date_str} +\"%Y_%b_%d\"`;
+filename=${dir}/$date_fname
 if [ ! -f ${filename} ]; then
 echo Creating ${NoteBookName} entry ${filename}
 echo "--------------------------------------------------------------------------------" > ${filename}
 echo -n "${NoteBookName}: " >> ${filename}
-date +"%a %d %b %Y" >> ${filename}
+(eval date ${date_str} +\"%a %d %b %Y\") >> ${filename}
 echo "--------------------------------------------------------------------------------" >> ${filename}
 else
 chmod +w ${filename}
