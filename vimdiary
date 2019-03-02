@@ -9,6 +9,7 @@
 # -----------------------------------------------------------------------
 # default settings
 NoteBase=~/NoteBooks
+set -e
 NoteBook=diary
 
 # override from config file if it exists
@@ -19,6 +20,7 @@ fi
 
 # process command line
 script=`basename "$0"`
+host=`uname`
 while [[ $# -gt 0 ]]
 do
 key="$1"
@@ -54,7 +56,14 @@ case $key in
         exit 0;
         ;;
      -y|--yesterday)
-        date_str="-d 'yesterday 13:00'"
+        case $host in
+            Darwin)
+                date_str="-v-1d"
+            ;;
+            *)
+                date_str="-d 'yesterday 13:00'"
+            ;;
+        esac
         shift;
         ;;
      -*)
@@ -74,6 +83,7 @@ NoteBookName=`echo ${notebook} | sed -e "s/_/ /g" -e "s/\b\(.\)/\u\1/g"`
 dir=${NoteBase}/${notebook}
 
 mkdir -p ${dir}
+echo Datae_str =  ${date_str}
 date_fname=`eval date ${date_str} +\"%Y_%b_%d\"`;
 filename=${dir}/$date_fname
 if [ ! -f ${filename} ]; then
