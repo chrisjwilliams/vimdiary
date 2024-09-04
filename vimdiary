@@ -10,6 +10,7 @@
 # default settings
 NoteBase=~/NoteBooks
 set -e
+shopt -s extglob
 NoteBook=diary
 
 # override from config file if it exists
@@ -17,9 +18,11 @@ ConfigFile="${HOME}/.vimdiary"
 if [ -f ${ConfigFile} ]; then
     source ${ConfigFile}
 fi
+days_ago=0
 
 # process command line
 script=`basename "$0"`
+script_dir=`dirname "$(realpath "$0")"`
 host=`uname`
 while [[ $# -gt 0 ]]
 do
@@ -39,7 +42,8 @@ case $key in
         echo "                     own subdirectory."
         echo "   -e|--env       : display config info to screen and exit"
         echo "   -l|--list      : list the notebooks that exist"
-        echo "   -y|--yesterday : open yesterdays entry"
+        echo "   -y|--yesterday : open yesterdays entry."
+        echo "                    Can be applied multiple times for dates further back"
         echo ""
         echo Configuration File:
         echo "    If the file ${ConfigFile} exists it will be read for the variables"
@@ -56,14 +60,11 @@ case $key in
         exit 0;
         ;;
      -y|--yesterday)
-        case $host in
-            Darwin)
-                date_str="-v-1d"
-            ;;
-            *)
-                date_str="-d 'yesterday 13:00'"
-            ;;
-        esac
+        days_ago=$((${days_ago} + 1))
+        shift;
+        ;;
+     -y+(y))
+        days_ago=$((${days_ago} + ${#key} - 1))
         shift;
         ;;
      -*)
@@ -77,20 +78,32 @@ case $key in
 esac
 done
 
+# set date command options
+if [[ $days_ago -ne 0 ]]; then
+    case $host in
+        Darwin)
+            date_str="-v-${days_ago}d"
+        ;;
+        *)
+            date_str="-d '-${days_ago} day 13:00'"
+        ;;
+    esac
+    date_str="${date_str} "
+fi
+
 # capitalise first letter of NoteBook name given
 notebook=`echo ${NoteBook} | tr "[A-Z]" "[a-z]"`
 NoteBookName=`echo ${notebook} | sed -e "s/_/ /g" -e "s/\b\(.\)/\u\1/g"`
 dir=${NoteBase}/${notebook}
 
 mkdir -p ${dir}
-echo Datae_str =  ${date_str}
-date_fname=`eval date ${date_str} +\"%Y_%b_%d\"`;
+date_fname=`eval date ${date_str}+\"%Y_%b_%d\"`;
 filename=${dir}/$date_fname
 if [ ! -f ${filename} ]; then
 echo Creating ${NoteBookName} entry ${filename}
 echo "--------------------------------------------------------------------------------" > ${filename}
 echo -n "${NoteBookName}: " >> ${filename}
-(eval date ${date_str} +\"%a %d %b %Y\") >> ${filename}
+(eval date ${date_str}+\"%a %d %b %Y\") >> ${filename}
 echo "--------------------------------------------------------------------------------" >> ${filename}
 else
 chmod +w ${filename}
@@ -99,4 +112,5 @@ fi
 date +"(%R)" >> ${filename}
 echo -n "     " >> ${filename}
 cd ${dir} && vim "+normal G$" +startinsert ${filename}
+#cd ${dir} && vim "+let &rtp=\"${script_dir}/vim\"" "+normal G$" "+call vimdiary#get_notebook(\"$dir\")" +startinsert ${filename}
 chmod -w ${filename}
